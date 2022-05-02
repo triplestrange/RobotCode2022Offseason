@@ -112,7 +112,7 @@ public class RobotContainer {
     // regular default driving
     // reset gyro is left wing
     // shoot ball
-    JoystickButtons.drBump.whileHeld(new ShootBall(shooter, conveyor));
+    JoystickButtons.drBump.whileHeld(new ShootBlind(shooter, conveyor));
     JoystickButtons.drBump.whenReleased(new InstantCommand(conveyor::stopConveyor, conveyor));
     JoystickButtons.dlBump.whileHeld(new ShootBallSlow(shooter, conveyor));
     JoystickButtons.dlBump.whenReleased(new InstantCommand(conveyor::stopConveyor, conveyor));
