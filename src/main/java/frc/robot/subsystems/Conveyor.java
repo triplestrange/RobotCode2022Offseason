@@ -60,19 +60,6 @@ public class Conveyor extends SubsystemBase {
     addChild("Sensor1", sensor1);
     addChild("Sensor2", sensor2);
 
-    I2C.Port i2cPort = I2C.Port.kOnboard;
-
-    m_colorSensor = new ColorSensorV3(i2cPort);
-    m_colorMatcher = new ColorMatch();
-
-    kBlueTarget = new Color(0.143, 0.427, 0.429);
-    kRedTarget = new Color(0.561, 0.232, 0.114);
-
-    m_colorMatcher.addColorMatch(kBlueTarget);
-    m_colorMatcher.addColorMatch(kRedTarget);
-
-    colorString = SmartDashboard.getString("DriverStation", "Red");
-
     periodic();
   }
 
@@ -94,6 +81,7 @@ public class Conveyor extends SubsystemBase {
       stopConveyor();
     }
   }
+
 
 
   public void runConveyor() {
@@ -130,15 +118,6 @@ public class Conveyor extends SubsystemBase {
 
   @Override
   public void periodic() {   
-    detectedColor = m_colorSensor.getColor();
-    match = m_colorMatcher.matchClosestColor(detectedColor);
-
-    if (detectedColor.blue > 0.3) {
-      colorString = "Blue";
-    } 
-    if (detectedColor.red > 0.3) {
-      colorString = "Red";
-    } 
     SmartDashboard.getNumber("ConveyorSetpoint", 0.7);
     SmartDashboard.putBoolean("BotEmpty", empty());
     SmartDashboard.getNumber("ConveyorSpeed", encoder1.getVelocity());
@@ -146,7 +125,6 @@ public class Conveyor extends SubsystemBase {
     SmartDashboard.putBoolean("Top Sensor", !sensor1.get());
     SmartDashboard.putBoolean("Bottom Sensor", !sensor2.get());
     // SmartDashboard.putNumber("Confidence", match.confidence);
-    SmartDashboard.putString("Detected Color", colorString);
     SmartDashboard.putString("DriverStation", DriverStation.getAlliance().toString());
   }
 }

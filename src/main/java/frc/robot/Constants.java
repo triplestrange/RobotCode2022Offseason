@@ -159,7 +159,7 @@ public final class Constants {
 
   }
 
-  public static class JoystickButtons {
+  public static class Btns {
     public static final Joystick m_driverController = new Joystick(0);
     public static final Joystick m_operatorController = new Joystick(1);
 

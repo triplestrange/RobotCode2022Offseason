@@ -22,7 +22,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.commands.autoSubsystems.*;
-import frc.robot.Constants.JoystickButtons;
+import frc.robot.Constants.Btns;
 import frc.robot.Constants.Shooting;
 
 import com.revrobotics.ColorMatch;
@@ -51,7 +51,6 @@ public class RobotContainer {
   private final Climber climb;
   private final Hood hood;
   private final SendableChooser<Command> choose;
-  public static final SendableChooser<String> color = new SendableChooser<String>();
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -81,6 +80,7 @@ public class RobotContainer {
     configDefaults();
 
     // autos
+    choose.addOption("Calibration", new Calibration(swerve));
     choose.addOption("TwoBall", new TwoBall(swerve, intake, conveyor, hood, turret, shooter));
     choose.addOption("ThreeBall - shoot first", new ThreeBallA(swerve, intake, conveyor, hood, turret, shooter));
     choose.addOption("ThreeBall - regular", new ThreeBallB(swerve, intake, conveyor, hood, turret, shooter));
@@ -112,43 +112,43 @@ public class RobotContainer {
     // regular default driving
     // reset gyro is left wing
     // shoot ball
-    JoystickButtons.drBump.whileHeld(new ShootBall(shooter, conveyor));
-    JoystickButtons.drBump.whenReleased(new InstantCommand(conveyor::stopConveyor, conveyor));
-    JoystickButtons.dlBump.whileHeld(new ShootBallSlow(shooter, conveyor));
-    JoystickButtons.dlBump.whenReleased(new InstantCommand(conveyor::stopConveyor, conveyor));
+    Btns.drBump.whileHeld(new ShootBall(shooter, conveyor));
+    Btns.drBump.whenReleased(new InstantCommand(conveyor::stopConveyor, conveyor));
+    Btns.dlBump.whileHeld(new ShootBallSlow(shooter, conveyor));
+    Btns.dlBump.whenReleased(new InstantCommand(conveyor::stopConveyor, conveyor));
     // manual turret
-    JoystickButtons.dlWing.whileHeld(new InstantCommand(() -> turret.runLeft(), turret));
-    JoystickButtons.dlWing.whenReleased(new InstantCommand(() -> turret.stop(), turret));
-    JoystickButtons.drWing.whileHeld(new InstantCommand(() -> turret.runRight(), turret));
-    JoystickButtons.drWing.whileHeld(new InstantCommand(() -> turret.stop(), turret));
+    Btns.dlWing.whileHeld(new InstantCommand(() -> turret.runLeft(), turret));
+    Btns.dlWing.whenReleased(new InstantCommand(() -> turret.stop(), turret));
+    Btns.drWing.whileHeld(new InstantCommand(() -> turret.runRight(), turret));
+    Btns.drWing.whileHeld(new InstantCommand(() -> turret.stop(), turret));
 
-    JoystickButtons.dA.whenPressed(new InstantCommand(shooter::stopShooter, shooter));
+    Btns.dA.whenPressed(new InstantCommand(shooter::stopShooter, shooter));
 
     // OPERATOR
     // toggle intake
-    JoystickButtons.oprWing.whenPressed(new InstantCommand(
+    Btns.oprWing.whenPressed(new InstantCommand(
         () -> intake.setIntake(1), intake));
-    JoystickButtons.oprWing.whenReleased(new InstantCommand(
+    Btns.oprWing.whenReleased(new InstantCommand(
         () -> intake.setIntake(0), intake));
 
     // toggle hood
-    JoystickButtons.oplWing.whenPressed(new InstantCommand(
+    Btns.oplWing.whenPressed(new InstantCommand(
         () -> hood.toggleHood()));
 
-    JoystickButtons.opA.whenPressed(new AutoClimb(swerve, climb, 0));
+    Btns.opA.whenPressed(new AutoClimb(swerve, climb, 0));
 
     // toggle climb
-    JoystickButtons.oprBump.whenPressed(new InstantCommand(climb::toggle, climb));
+    Btns.oprBump.whenPressed(new InstantCommand(climb::toggle, climb));
 
   }
 
   public void configDefaults() {
-    swerve.setDefaultCommand(new DefaultDrive(swerve, JoystickButtons.m_driverController, 1));
+    swerve.setDefaultCommand(new DefaultDrive(swerve, Btns.m_driverController, 1));
     turret.setDefaultCommand(new AimBot(turret, hood));
     intake.setDefaultCommand(new RunCommand(() -> {
-      if (JoystickButtons.m_operatorController.getRawAxis(3) > 0.05) {
+      if (triggered(Btns.m_operatorController.getRawAxis(3), 0.05)) {
         intake.intake();
-      } else if (JoystickButtons.m_operatorController.getRawAxis(2) > 0.05) {
+      } else if (triggered(Btns.m_operatorController.getRawAxis(2), 0.05)) {
         intake.outtake();
       } else {
         intake.retract();
@@ -156,7 +156,7 @@ public class RobotContainer {
     }, intake));
     conveyor.setDefaultCommand(new RunCommand(() -> {
       // intaking
-      if (JoystickButtons.m_operatorController.getRawAxis(3) > 0.05) {
+      if (triggered(Btns.m_operatorController.getRawAxis(3), 0.05)) {
         conveyor.autoConveyor();
         if (SmartDashboard.getBoolean("Shooting", false)) {
           if (shooter.atSpeed() && NetworkTableInstance.getDefault().getTable("limelight").getEntry("ty").getDouble(0.0) != 0) {
@@ -166,7 +166,7 @@ public class RobotContainer {
           }
         }
       // outtaking
-      } else if (JoystickButtons.m_operatorController.getRawAxis(2) > 0.05) {
+      } else if (triggered(Btns.m_operatorController.getRawAxis(2), 0.05)) {
         conveyor.runConveyor(0.75);
       } else {
         conveyor.stopConveyor();
@@ -176,15 +176,15 @@ public class RobotContainer {
       }
     }, conveyor));
     climb.setDefaultCommand(new RunCommand(() -> {
-      if (Math.abs(JoystickButtons.m_operatorController.getRawAxis(5)) > 0.3) {
-        SmartDashboard.putNumber("ClimberSpeedL", JoystickButtons.m_operatorController.getRawAxis(5));
+      if (triggered(Btns.m_operatorController.getRawAxis(5), 0.3)) {
+        SmartDashboard.putNumber("ClimberSpeedL", Btns.m_operatorController.getRawAxis(5));
         climb.moveLeft();
       } else {
         climb.stopLeft();
       }
   
-      if (Math.abs(JoystickButtons.m_operatorController.getRawAxis(1)) > 0.3) {
-        SmartDashboard.putNumber("ClimberSpeedR", JoystickButtons.m_operatorController.getRawAxis(1));
+      if (triggered(Btns.m_operatorController.getRawAxis(1), 0.3)) {
+        SmartDashboard.putNumber("ClimberSpeedR", Btns.m_operatorController.getRawAxis(1));
         climb.moveRight();
        } else {
          climb.stopRight();
@@ -208,6 +208,13 @@ public class RobotContainer {
     // } else {
     //   swerve.resetOdometry(new Pose2d(0, 0, new Rotation2d(Math.PI / 2)));
     // }
+  }
+
+  public boolean triggered(double val, double deadzone) {
+    if (Math.abs(val) > deadzone) {
+      return true;
+    }
+    return false;
   }
 
 }
