@@ -80,7 +80,7 @@ public class RobotContainer {
     configDefaults();
 
     // autos
-    choose.addOption("Calibration", new Calibration(swerve));
+    // choose.addOption("Calibration", new Calibration(swerve));
     choose.addOption("TwoBall", new TwoBall(swerve, intake, conveyor, hood, turret, shooter));
     choose.addOption("ThreeBall - shoot first", new ThreeBallA(swerve, intake, conveyor, hood, turret, shooter));
     choose.addOption("ThreeBall - regular", new ThreeBallB(swerve, intake, conveyor, hood, turret, shooter));

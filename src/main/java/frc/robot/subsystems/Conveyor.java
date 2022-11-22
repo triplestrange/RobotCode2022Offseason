@@ -56,30 +56,42 @@ public class Conveyor extends SubsystemBase {
     table = NetworkTableInstance.getDefault().getTable("conveyor");
 
 
+
     // LiveWindow
     addChild("Sensor1", sensor1);
     addChild("Sensor2", sensor2);
 
+    SmartDashboard.putNumber("Top Motor", 0);
+    SmartDashboard.putNumber("Bottom Motor", 0);
+
     periodic();
   }
+  double topSpeed = 0;
+  double bottomSpeed = 0;
 
   public void autoConveyor() {
     // top is sensor 1
     // bottom is sensor 2
     // ! means it has a value
+    /*
     if (sensor1.get() && !sensor2.get()) {
       runConveyor(-1);
     }
+    */
     if (!sensor1.get() && sensor2.get()) {
       motor1.set(-1);
       motor2.set(0);
     }
+    /*
     if (sensor1.get() && sensor2.get()) {
       runConveyor(-1);
     }
+    */
     if (!sensor1.get() && !sensor2.get()) {
       stopConveyor();
     }
+    runConveyorTop(topSpeed);
+    runConveyorBottom(bottomSpeed);
   }
 
 
@@ -94,17 +106,19 @@ public class Conveyor extends SubsystemBase {
     motor2.set(-newSpeed);
   }
 
+  // +newSpeed runs motor IN, -newSpeed runs motor OUT
+  public void runConveyorTop(double newSpeed) {
+    motor1.set(-newSpeed);
+  }
+
+  // +newSpeed runs motor IN, -newSpeed runs motor OUT
+  public void runConveyorBottom(double newSpeed) {
+    motor2.set(newSpeed);
+  }
+
   public void stopConveyor() {
     motor1.set(0);
     motor2.set(0);
-  }
-
-  public boolean getTopSensor() {
-    return !sensor1.get();
-  }
-
-  public boolean getBotSensor() {
-    return !sensor2.get();
   }
 
   public boolean empty() {
@@ -115,16 +129,27 @@ public class Conveyor extends SubsystemBase {
   public void initDefaultCommand() {
 
   }
-
+//make code clean
+//getting reverse of sensor value bc sensors are dumb and give true when nothing
+//sensor one is top sensor
+//sensor two is bottem sensor
+  public boolean getTopSensor() {
+    return !sensor1.get();
+  }
+  public boolean getBottomSensor() {
+    return !sensor2.get();
+  }
   @Override
   public void periodic() {   
     SmartDashboard.getNumber("ConveyorSetpoint", 0.7);
     SmartDashboard.putBoolean("BotEmpty", empty());
     SmartDashboard.getNumber("ConveyorSpeed", encoder1.getVelocity());
     SmartDashboard.getNumber("HopperSpeed", encoder2.getVelocity());
-    SmartDashboard.putBoolean("Top Sensor", !sensor1.get());
-    SmartDashboard.putBoolean("Bottom Sensor", !sensor2.get());
+    SmartDashboard.putBoolean("Top Sensor", getTopSensor());
+    SmartDashboard.putBoolean("Bottom Sensor", getBottomSensor());
     // SmartDashboard.putNumber("Confidence", match.confidence);
     SmartDashboard.putString("DriverStation", DriverStation.getAlliance().toString());
+    topSpeed = SmartDashboard.getNumber("Top Motor", 0);
+    bottomSpeed = SmartDashboard.getNumber("Bottom Motor", 0);
   }
 }
